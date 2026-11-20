@@ -86,30 +86,17 @@ for i in list(range(len(dt_frag_list))):
     dt_frag_i = dt_frag_i.round(1)
     dt_frag_i = dt_frag_i.astype(int)
 
-    # Create long forms of fragment histograms
-    dt_frag_i_long = np.repeat(dt_frag_i["Size"].values, dt_frag_i["Occurrences"].values)
-    dt_group_i_long = np.repeat(group_i, len(dt_frag_i_long))
-    dt_rep_i_long = np.repeat(rep_i, len(dt_frag_i_long))
-
     dt_group_i_short = np.repeat(group_i, dt_frag_i.shape[0])
     dt_rep_i_short = np.repeat(rep_i, dt_frag_i.shape[0])
 
     if i == 0:
-        frags_arr = dt_frag_i_long
-        group_arr = dt_group_i_long
-        rep_arr = dt_rep_i_long
-
         group_short = dt_group_i_short
         rep_short = dt_rep_i_short
         frag_hist = dt_frag_i
     else:
-        frags_arr = np.append(frags_arr, dt_frag_i_long)
-        group_arr = np.append(group_arr, dt_group_i_long)
-        rep_arr = np.append(rep_arr, dt_rep_i_long)
-
         group_short = np.append(group_short, dt_group_i_short)
         rep_short = np.append(rep_short, dt_rep_i_short)
-        frag_hist = frag_hist.append(dt_frag_i)
+        frag_hist = pd.concat([frag_hist, dt_frag_i])
 
 frag_hist["group"] = group_short
 frag_hist["replicate"] = rep_short
@@ -117,8 +104,8 @@ frag_hist = frag_hist.reset_index(drop=True)
 
 size_list = frag_hist["Size"].to_numpy().astype(str)
 occurrences_list = frag_hist["Occurrences"].to_numpy().astype(str)
-size_list_sep = np.core.defchararray.add(size_list, " : ")
-x_y_list = np.core.defchararray.add(size_list_sep, occurrences_list)
+size_list_sep = np.char.add(size_list, " : ")
+x_y_list = np.char.add(size_list_sep, occurrences_list)
 
 group_rep = frag_hist[["group", "replicate"]].groupby(["group", "replicate"]).size().reset_index()
 first_line = "data:"
