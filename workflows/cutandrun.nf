@@ -385,9 +385,17 @@ workflow CUTANDRUN {
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
-        ch_samtools_stats    = DEDUPLICATE_PICARD.out.stats
-        ch_samtools_flagstat = DEDUPLICATE_PICARD.out.flagstat
-        ch_samtools_idxstats = DEDUPLICATE_PICARD.out.idxstats
+        if (params.dedup_target_reads) {
+            ch_samtools_stats    = DEDUPLICATE_PICARD.out.stats
+            ch_samtools_flagstat = DEDUPLICATE_PICARD.out.flagstat
+            ch_samtools_idxstats = DEDUPLICATE_PICARD.out.idxstats
+        } else {
+            // DEDUPLICATE_PICARD only re-computes stats for controls; targets pass
+            // through unchanged, so carry their stats over from the previous step
+            ch_samtools_stats    = DEDUPLICATE_PICARD.out.stats.mix(    ch_samtools_stats.filter    { it -> it[0].is_control == false } )
+            ch_samtools_flagstat = DEDUPLICATE_PICARD.out.flagstat.mix( ch_samtools_flagstat.filter { it -> it[0].is_control == false } )
+            ch_samtools_idxstats = DEDUPLICATE_PICARD.out.idxstats.mix( ch_samtools_idxstats.filter { it -> it[0].is_control == false } )
+        }
         ch_software_versions = ch_software_versions.mix(DEDUPLICATE_PICARD.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
